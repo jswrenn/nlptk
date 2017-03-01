@@ -69,6 +69,7 @@ execute this in the root project directory:
 cargo run --example unigram -- examples/data/penn-tree-bank-train.txt | more
 ```
 
+[unigram]: https://gitlab.com/jswrenn/nlptk/blob/master/examples/unigram.rs
 
 
 
