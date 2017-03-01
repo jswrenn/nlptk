@@ -1,0 +1,11 @@
+image: "scorpil/rust:nightly"
+pages:
+  script:
+  - cargo doc --no-deps
+  - mv target/doc public
+  - cp .ci/index.html public/index.html
+  artifacts:
+    paths:
+    - public
+  only:
+  - master

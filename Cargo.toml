@@ -1,0 +1,12 @@
+[package]
+name = "nlptk"
+version = "0.1.0"
+authors = ["Jack Wrenn <me@jswrenn.com>"]
+
+[dependencies]
+itertools = "0.5.9"
+num = "*"
+
+[dev_dependencies.vosealias]
+git = "https://github.com/jswrenn/vosealias-rs"
+
