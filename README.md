@@ -1,5 +1,5 @@
 # nlptk
-[_Documentation_](https://jswrenn.gitlab.io/nlptk)   
+[_Documentation_](https://jswrenn.gitlab.io/nlptk/nlptk/)   
 
 A natural language processing toolkit designed to aid in the
 implementation of Brown University's [_Introduction to Computational
