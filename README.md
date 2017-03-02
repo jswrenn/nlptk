@@ -51,7 +51,7 @@ fn get_translation_probability<'t, L, M>(
         M: Language
 {
   translation_table
-    .get(&(foreign_word, native_word))
+    .get(&(native_word, foreign_word))
     .unwrap_or(0.0)
 }
 ```
