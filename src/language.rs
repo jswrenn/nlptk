@@ -12,15 +12,19 @@ pub trait Language
 
 /// Declares a new language type to be used as the phantom type 
 /// parameter for corpora and tokens. This:
+///
 /// ```rust
 /// language!(English);
 /// ```
+///
 /// is expanded to:
+///
 /// ```rust 
 /// #[derive(Debug, Clone, Copy, Hash, PartialEq, PartialOrd, Eq, Ord)]
 /// pub struct English;
 /// impl Language for English {}
 /// ```
+///
 #[macro_export]
 macro_rules! language {
   // `()` indicates that the macro takes no argument.
