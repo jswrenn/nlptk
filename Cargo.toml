@@ -7,6 +7,9 @@ authors = ["Jack Wrenn <me@jswrenn.com>"]
 itertools = "0.5.9"
 num = "*"
 
+[dev_dependencies.fnv]
+version = "1.0.3"
+
 [dev_dependencies.vosealias]
 git = "https://github.com/jswrenn/vosealias-rs"
 
