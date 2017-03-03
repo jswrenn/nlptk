@@ -51,29 +51,45 @@ impl<I: io::Read, L> TryFrom<I> for Corpus<L> {
   /// ```
   /// [`Read`]: https://doc.rust-lang.org/std/io/trait.Read.html
   fn try_from(mut i: I) -> Result<Corpus<L>, io::Error> {
-    use std::mem::transmute;
-    let mut bytes = vec![];
+    let bytes = vec![];
+    i.read_to_end(&mut bytes)?;
+    Ok(bytes.into())
+  }
+}
+
+
+impl<I: Into<Vec<u8>>, L> From<I> for Corpus<L> {
+  /// Creates a corpus from any value which can be interpreted as a
+  /// vector of bytes.
+  ///
+  /// ```rust
+  ///
+  /// let english: Corpus<English> = "The soup pleased the dog.".into();
+  /// let fthishr: Corpus<Fthishr> = "Zhiidh or thir o vozir.".into();
+  /// ```
+  /// [`Read`]: https://doc.rust-lang.org/std/io/trait.Read.html
+  fn from(i: I) -> Corpus<L> {
+    let mut bytes = i.into();
     let mut words = vec![];
     let mut sentences = vec![];
-    i.read_to_end(&mut bytes)?;
     for sentence in bytes.split(|&c| c == b'\n') {
       let s = words.len();
       words.extend(sentence.split(|&c| c == b' ')
         .filter(|w| !w.is_empty())
         .map(|w| unsafe { 
-          transmute(Token::Word::<L> {chars: w, language: PhantomData})}));
+          mem::transmute(Token::Word::<L> {chars: w, language: PhantomData})}));
       let e = words.len();
       sentences.push((s,e));
     }
     
     let sentences = sentences.iter().map(|&(s,e)|
-        unsafe{transmute(&words[s..e])}).collect_vec();
+        unsafe{mem::transmute(&words[s..e])}).collect_vec();
 
-    Ok(Corpus {
+    Corpus {
       bytes: bytes,
       words: words,
       sentences: sentences
-    })
+    }
   }
 }
 
