@@ -1,9 +1,9 @@
 use std::fmt;
 use std::marker::PhantomData;
-use language::Language;
+use language::{Language, DefaultLanguage};
 
 #[derive(Clone, Copy, Hash, PartialEq, PartialOrd, Eq, Ord)]
-pub enum Token<'t, L> {
+pub enum Token<'t, L=DefaultLanguage> {
   /// A `Word` token is a slice of characters that are actually present
   /// in some document.
   Word {
