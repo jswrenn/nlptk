@@ -9,11 +9,16 @@ use std::marker::PhantomData;
 use std::mem;
 use std::convert::TryFrom;
 
-pub type Bigram<'t, L>  = (Token<'t, L>, Token<'t, L>);
+/// A unigram is a single token.
 pub type Unigram<'t, L> = Token<'t, L>;
+
+/// A bigram is a tuple of tokens of the same language (and usually
+/// the same corpora).
+pub type Bigram<'t, L>  = (Token<'t, L>, Token<'t, L>);
 
 /// The `Corpus` type, parameterized by a Language.
 pub struct Corpus<L> {
+  #[allow(dead_code)]
   bytes: Vec<u8>,
   words: Vec<Token<'static, L>>,
   sentences: Vec<*const [Token<'static, L>]>,
@@ -51,7 +56,7 @@ impl<I: io::Read, L> TryFrom<I> for Corpus<L> {
   /// ```
   /// [`Read`]: https://doc.rust-lang.org/std/io/trait.Read.html
   fn try_from(mut i: I) -> Result<Corpus<L>, io::Error> {
-    let bytes = vec![];
+    let mut bytes = vec![];
     i.read_to_end(&mut bytes)?;
     Ok(bytes.into())
   }
@@ -69,7 +74,7 @@ impl<I: Into<Vec<u8>>, L> From<I> for Corpus<L> {
   /// ```
   /// [`Read`]: https://doc.rust-lang.org/std/io/trait.Read.html
   fn from(i: I) -> Corpus<L> {
-    let mut bytes = i.into();
+    let bytes = i.into();
     let mut words = vec![];
     let mut sentences = vec![];
     for sentence in bytes.split(|&c| c == b'\n') {
