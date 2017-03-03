@@ -2,21 +2,46 @@ use std::fmt;
 use std::marker::PhantomData;
 use language::{Language, DefaultLanguage};
 
+/// A `Word` is a slice of characters belonging from a `Corpus`.
+#[derive(Clone, Copy, Hash, PartialEq, PartialOrd, Eq, Ord)]
+pub struct Word<'t, L>{
+  /// A slice of characters in a `Corpus`.
+  chars: &'t [u8],
+  /// Stores the language parameter `L` of this word.
+  language: PhantomData<L>
+}
+
+impl<'t, L> From<&'t[u8]> for Word<'t, L> {
+  fn from(chars: &'t[u8]) -> Word<'t, L> {
+    Word {
+      chars: chars,
+      language: PhantomData
+    }
+  }
+}
+
+/// The `Token` type represents word-tokens belonging to a `Corpus`.
+/// In addition to words actually appearing in a `Corpus`, the `Token`
+/// type includes variants for representing `Null` and `Unknown` words.
+/// `Token`s should not be instantiated directly, but rather by
+/// instantiating and interacting with a `Token`.
 #[derive(Clone, Copy, Hash, PartialEq, PartialOrd, Eq, Ord)]
 pub enum Token<'t, L=DefaultLanguage> {
   /// A `Word` token is a slice of characters that are actually present
   /// in some document.
-  Word {
-    chars: &'t [u8],
-    #[doc(hidden)]
-    language: PhantomData<L>
-  },
+  Word(Word<'t, L>),
   /// The `Null` token represents non-words.
   Null,
   /// The `Unknown` token variant represents words that do not appear
   /// in a canonical glossary. See [`unk`] for more information.
   /// [`unk`]: fn.unk.html
   Unknown
+}
+
+impl<'t, L> From<&'t[u8]> for Token<'t, L> {
+  fn from(chars: &'t[u8]) -> Token<'t, L> {
+    Token::Word(chars.into())
+  }
 }
 
 impl<'l, L:Language> Token<'l, L>
@@ -31,24 +56,35 @@ impl<'l, L:Language> Token<'l, L>
   }
 }
 
+impl<'t,L> fmt::Debug for Word<'t,L> {
+  fn fmt(&self, f: &mut fmt::Formatter) -> ::std::fmt::Result {
+    write!(f, "{:?}", self.chars)
+  }
+}
+
+impl<'t,L> fmt::Display for Word<'t,L> {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    use std::iter::FromIterator;
+    write!(f, "{}", String::from_iter(self.chars.iter().map(|&c| c as char)))
+  }
+}
+
 impl<'t,L> fmt::Debug for Token<'t,L> {
   fn fmt(&self, f: &mut fmt::Formatter) -> ::std::fmt::Result {
     match *self {
       Token::Null => write!(f, "ε"),
       Token::Unknown => write!(f, "�"),
-      Token::Word{chars, ..} => write!(f, "{:?}", chars)
+      Token::Word(ref word) => word.fmt(f)
     }
   }
 }
 
 impl<'t,L> fmt::Display for Token<'t,L> {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    use std::iter::FromIterator;
     match *self {
       Token::Null => write!(f, "ε"),
       Token::Unknown => write!(f, "�"),
-      Token::Word{chars, ..} => write!(f, "{}",
-        String::from_iter(chars.iter().map(|&c| c as char)))
+      Token::Word(ref word) => word.fmt(f)
     }
   }
 }

@@ -1,11 +1,10 @@
 use token::Token;
-use language::Language;
+use language::{Language, DefaultLanguage};
 
 use std::io;
 use std::collections::HashSet;
 use std::hash;
 use itertools::Itertools;
-use std::marker::PhantomData;
 use std::mem;
 use std::convert::TryFrom;
 
@@ -17,11 +16,13 @@ pub type Unigram<'t, L> = Token<'t, L>;
 pub type Bigram<'t, L>  = (Token<'t, L>, Token<'t, L>);
 
 /// The `Corpus` type, parameterized by a Language.
-pub struct Corpus<L> {
+pub struct Corpus<L=DefaultLanguage>
+  where L: 'static
+{
   #[allow(dead_code)]
   bytes: Vec<u8>,
   words: Vec<Token<'static, L>>,
-  sentences: Vec<*const [Token<'static, L>]>,
+  sentences: Vec<&'static [Token<'static, L>]>,
 }
 
 /// A sentence is a slice of words.
@@ -30,12 +31,12 @@ pub type Sentence<'t, L> = &'t[Token<'t, L>];
 impl<L> Corpus<L> {
   /// Returns a slice of tokens in the document.
   pub fn words<'t>(&'t self) -> &'t [Token<'t, L>] {
-    unsafe{mem::transmute(&self.words[..])}
+    &self.words[..]
   }
 
   /// Returns a slice of sentences in the document.
-  pub fn sentences<'t>(&'t self) -> &'t [Sentence<'t, L>] {
-    unsafe{mem::transmute(&self.sentences[..])}
+  pub fn sentences<'t>(&'t self) -> &'t [&'t [Token<'static, L>]] {
+    &self.sentences[..]
   }
 }
 
@@ -74,30 +75,49 @@ impl<I: Into<Vec<u8>>, L> From<I> for Corpus<L> {
   /// ```
   /// [`Read`]: https://doc.rust-lang.org/std/io/trait.Read.html
   fn from(i: I) -> Corpus<L> {
+    // Unsafe is used in this function to extend the lifetimes of tokens
+    // derived from the `Corpus` byte vector to that of the lifetime of
+    // the entire program. This is necessary because `Corpus`
+    // self-borrows; the `words` and `sentences` fields contain pointers
+    // into the `bytes` field.
+    //
+    // Accordingly, these fields are kept private and the `words()` and
+    // `sentences()` methods provide a safe interface that constrains
+    // the lifetimes of returned values to that of the corpus they
+    // belong to.
+    //
+    // It is important that after creating the `Corpus` value, that its
+    // `bytes` and `words` vectors are never pushed to. Exceeding the
+    // internal capacity of either of these vectors would force a
+    // reallocation of their backing memory store and thereby invalidate
+    // pointers into those vectors. Accordingly, no interface is
+    // provided for extending a `Corpus` with additional tokens after it
+    // is initialized.
+
     let bytes = i.into();
+
     let mut words = vec![];
     let mut sentences = vec![];
+
     for sentence in bytes.split(|&c| c == b'\n') {
       let s = words.len();
       words.extend(sentence.split(|&c| c == b' ')
         .filter(|w| !w.is_empty())
-        .map(|w| unsafe { 
-          mem::transmute(Token::Word::<L> {chars: w, language: PhantomData})}));
+        .map(|w| unsafe {mem::transmute::<Token<L>,_>(w.into())}));
       let e = words.len();
       sentences.push((s,e));
     }
-    
+
     let sentences = sentences.iter().map(|&(s,e)|
-        unsafe{mem::transmute(&words[s..e])}).collect_vec();
+      unsafe{mem::transmute(&words[s..e])}).collect_vec();
 
     Corpus {
       bytes: bytes,
       words: words,
-      sentences: sentences
+      sentences: sentences,
     }
   }
 }
-
 
 /// Consumes an iterator over tokens and a vocabulary, and produces
 /// an iterator over tokens in which all unknown words (words that are 
@@ -133,15 +153,35 @@ pub fn bigrams<'t, T, L>(words: T)
   IntoIterator::into_iter(words).tuple_windows::<(_,_)>()
 }
 
-/// Consumes a reference to a corpus, and produces an iterator over all
-/// words in the corpus, with [`Token::Null`] values inserted at
+/// Consumes an interator over sentences, and produces an iterator over
+/// all words in the corpus, with [`Token::Null`] values inserted at
 /// sentence boundaries.
+///
+/// # Example
+///
+/// ```rust
+/// extern crate nlptk;
+/// extern crate itertools;
+/// use nlptk::{Corpus, padded};
+/// use itertools::Itertools;
+///
+/// fn main() {
+///   let testing : Corpus = "The soup pleased the dog.
+///                           The cat caught the rat.".into();
+///
+///   assert_eq!(padded(testing.sentences()).join(" "),
+///     "ε The soup pleased the dog. ε The cat caught the rat. ε");
+/// }
+/// ```
+///
 /// [`Token::Null`]: enum.Token.html#variant.Null
-pub fn padded<'t, L: Language>(corpus: &'t Corpus<L>)
-    -> impl 't + Iterator<Item=Token<'t, L>> {
+pub fn padded<'t, I, L: 't + Language>(sentences: I)
+    -> impl 't + Iterator<Item=Token<'t, L>>
+  where I: 't + IntoIterator<Item=&'t &'t[Token<'t, L>]>
+{
   use std::iter::once;
   once(Token::Null).chain(
-    corpus.sentences().iter()
+    IntoIterator::into_iter(sentences)
       .map(|sentence| sentence.iter().cloned().chain(once(Token::Null)))
       .flatten())
 }
