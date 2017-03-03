@@ -35,7 +35,7 @@ impl<L> Corpus<L> {
   }
 
   /// Returns a slice of sentences in the document.
-  pub fn sentences<'t>(&'t self) -> &'t [&'t [Token<'static, L>]] {
+  pub fn sentences<'t>(&'t self) -> &'t [&'t [Token<'t, L>]] {
     &self.sentences[..]
   }
 }
