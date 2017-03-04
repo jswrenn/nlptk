@@ -185,3 +185,30 @@ pub fn padded<'t, I, L: 't + Language>(sentences: I)
       .map(|sentence| sentence.iter().cloned().chain(once(Token::Null)))
       .flatten())
 }
+
+impl<'t, L: 't> IntoIterator for &'t Corpus<L> {
+  type Item = &'t &'t [Token<'t, L>];
+  type IntoIter = ::std::slice::Iter<'t, &'t [Token<'t, L>]>;
+
+  /// Convert a reference to a corpus into an iterator over sentences
+  /// in the corpus.
+  fn into_iter(self) -> Self::IntoIter {
+    IntoIterator::into_iter(self.sentences())
+  }
+}
+
+impl<'t, L: 't + Language> Into<&'t [&'t [Token<'t, L>]]> for &'t Corpus<L> {
+  /// Convert a reference to a corpus into a reference to a slice of all
+  /// sentences in the corpus.
+  fn into(self) -> &'t [&'t [Token<'t, L>]] {
+    self.sentences()
+  }
+}
+
+impl<'t, L: 't + Language> Into<&'t [Token<'t, L>]> for &'t Corpus<L> {
+  /// Convert a reference to a corpus into a reference to a slice of all
+  /// words in the corpus.
+  fn into(self) -> &'t [Token<'t, L>] {
+    self.words()
+  }
+}
