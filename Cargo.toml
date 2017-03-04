@@ -5,7 +5,6 @@ authors = ["Jack Wrenn <me@jswrenn.com>"]
 
 [dependencies]
 itertools = "0.5.9"
-num = "*"
 
 [dev_dependencies.fnv]
 version = "1.0.3"

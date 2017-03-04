@@ -81,7 +81,6 @@
 #![feature(pub_restricted)]
 #![allow(non_snake_case)]
 #![warn(missing_docs)]
-extern crate num;
 extern crate itertools;
 
 #[macro_use]
