@@ -77,10 +77,7 @@
 
 #![feature(conservative_impl_trait)]
 #![feature(try_from)]
-#![feature(non_ascii_idents)]
-#![feature(pub_restricted)]
 #![allow(non_snake_case)]
-#![warn(missing_docs)]
 extern crate itertools;
 
 #[macro_use]
