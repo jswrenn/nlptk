@@ -2,6 +2,10 @@ use std::fmt;
 use std::marker::PhantomData;
 use language::{Language, DefaultLanguage};
 
+const UNK_CHARS: [u8;5] = [b'*', b'U', b'N', b'K', b'*'];
+pub static UNK: Token<'static, DefaultLanguage> 
+  = Token::Word(Word{chars: &UNK_CHARS, language: PhantomData});
+
 /// A `Word` is a slice of characters belonging from a `Corpus`.
 #[derive(Clone, Copy, Hash, PartialEq, PartialOrd, Eq, Ord)]
 pub struct Word<'t, L>{
@@ -48,7 +52,7 @@ impl<'l, L:Language> Token<'l, L>
 {
   /// Consumes a token in one language, and produces the same token as
   /// if it belonged to another language.
-  pub fn loan<'m, M: Language>(self) -> Token<'m, M> 
+  pub fn loan<'m, M: Language>(&'l self) -> &'m Token<'m, M> 
     where 'l: 'm,
   {
     use std::mem::transmute;
@@ -58,7 +62,8 @@ impl<'l, L:Language> Token<'l, L>
 
 impl<'t,L> fmt::Debug for Word<'t,L> {
   fn fmt(&self, f: &mut fmt::Formatter) -> ::std::fmt::Result {
-    write!(f, "{:?}", self.chars)
+    use std::iter::FromIterator;
+    write!(f, "{}", String::from_iter(self.chars.iter().map(|&c| c as char)))
   }
 }
 
