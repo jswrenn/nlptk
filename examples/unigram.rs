@@ -6,6 +6,7 @@ extern crate itertools;
 extern crate vosealias;
 extern crate fnv;
 
+
 use vosealias::AliasTable as Roulette;
 use nlptk::*;
 use std::env;
@@ -44,7 +45,7 @@ fn main() {
     .take(1);
 
   // Construct the training corpus from that file
-  let training: Corpus<English> = 
+  let training: Document<English> =
     files.next()
       .unwrap()
       .try_into()
@@ -53,12 +54,12 @@ fn main() {
   // Construct a lookup table mapping each observed sentence length to
   // the number of sentences of that length.
   let sentence_length_frequency : FnvHashMap<_,_> =
-    frequency(training.sentences().iter().map(|n| n.len()));
+    frequency(training.lines().iter().map(|n| n.len()));
 
   // Construct a lookup table mapping each observed word to the number
   // of times that word was observed.
   let word_frequency : FnvHashMap<_,_> =
-    frequency(training.words().iter());
+    frequency(training.tokens().iter());
 
   // Construct a discrete probability distribution of sentence
   // lengths using the alias method.

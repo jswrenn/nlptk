@@ -18,7 +18,7 @@
 //!
 //! ```rust
 //! extern crate nlptk;
-//! use nlptk::{Corpus, Language, Token}
+//! use nlptk::{Document, Language, Token}
 //! ```
 //!
 //! # Language Annotations for Corpora and Tokens
