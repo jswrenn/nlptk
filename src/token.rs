@@ -52,9 +52,7 @@ impl<'l, L:Language> Token<'l, L>
 {
   /// Consumes a token in one language, and produces the same token as
   /// if it belonged to another language.
-  pub fn loan<'m, M: Language>(&'l self) -> &'m Token<'m, M> 
-    where 'l: 'm,
-  {
+  pub fn loan<M: Language>(self) -> Token<'l, M> {
     use std::mem::transmute;
     unsafe{transmute(self)}
   }
