@@ -5,7 +5,8 @@
 extern crate itertools;
 extern crate vosealias;
 extern crate fnv;
-
+extern crate frequency;
+extern crate frequency_hashmap;
 
 use vosealias::AliasTable as Roulette;
 use nlptk::*;
@@ -17,25 +18,12 @@ use std::hash;
 use itertools::Itertools;
 use fnv::FnvHashMap;
 use std::collections::HashMap;
+use frequency::Frequency;
+use frequency_hashmap::HashMapFrequency;
 
 // Corpora and tokens are tagged with a Language type parameter. This
 // prevents accidental access. 
 language!(English);
-
-/// Given an input stream of tokens, produces a mapping between each
-/// word type and its frequency in the stream.
-pub fn frequency<T, I, S>(ngrams: I)
-    -> HashMap<T, usize, S> 
-  where T: hash::Hash + Ord + Eq,
-        I: IntoIterator<Item=T>,
-        S: hash::BuildHasher + Default {
-  let mut frequency = HashMap::<T, usize, S>::default();
-  for ngram in ngrams {
-    let count = frequency.entry(ngram).or_insert(0);
-    *count += 1;
-  }
-  frequency
-}
 
 fn main() {
   // Open the first file path specified as a command line argument
@@ -53,13 +41,13 @@ fn main() {
 
   // Construct a lookup table mapping each observed sentence length to
   // the number of sentences of that length.
-  let sentence_length_frequency : FnvHashMap<_,_> =
-    frequency(training.lines().iter().map(|n| n.len()));
+  let sentence_length_frequency: HashMapFrequency<_> =
+    HashMapFrequency::from_iter(training.lines().iter().map(|n| n.len()));
 
   // Construct a lookup table mapping each observed word to the number
   // of times that word was observed.
-  let word_frequency : FnvHashMap<_,_> =
-    frequency(training.tokens().iter());
+  let word_frequency: HashMapFrequency<_> =
+    HashMapFrequency::from_iter(training.tokens().iter());
 
   // Construct a discrete probability distribution of sentence
   // lengths using the alias method.

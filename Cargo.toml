@@ -1,6 +1,6 @@
 [package]
 name = "nlptk"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Jack Wrenn <me@jswrenn.com>"]
 
 [dependencies]
@@ -8,6 +8,8 @@ itertools = "0.5.9"
 
 [dev_dependencies]
 fnv = "1.0.3"
+frequency = "^1.0.0"
+frequency-hashmap = "^1.0.0"
 
 [dev_dependencies.vosealias]
 git = "https://github.com/jswrenn/vosealias-rs"

@@ -42,7 +42,7 @@ impl<L> Document<L> {
 
 
 impl<I: io::Read, L> TryFrom<I> for Document<L> {
-  type Err = io::Error;
+  type Error = io::Error;
   /// Creates a document from a value implementing the [`Read`] trait by
   /// reading bytes until all bytes have been read. For example:
   ///
