@@ -149,8 +149,8 @@ pub fn unigrams<'t, T, L>(tokens: T)
 pub fn bigrams<'t, T, L>(tokens: T)
     -> impl Iterator<Item=Bigram<'t, L>>
   where L: Language + 't,
-        T: IntoIterator<Item=Token<'t, L>> {
-  IntoIterator::into_iter(tokens).tuple_windows::<(_,_)>()
+        T: IntoIterator<Item=&'t Token<'t, L>> {
+  IntoIterator::into_iter(tokens).cloned().tuple_windows::<(_,_)>()
 }
 
 /// Consumes an interator over lines, and produces an iterator over
